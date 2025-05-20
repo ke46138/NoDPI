@@ -8,21 +8,38 @@ import os
 import sys
 from datetime import datetime
 import time
+import traceback
 
-__version__ = "1.6"
+__version__ = "1.7"
 
 os.system("")
 
 
+class ConnectionInfo:
+    def __init__(self, src_ip, dst_domain, method):
+        self.src_ip = src_ip
+        self.dst_domain = dst_domain
+        self.method = method
+        self.start_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        self.traffic_in = 0
+        self.traffic_out = 0
+
+
 class ProxyServer:
 
-    def __init__(self, host, port, blacklist, log, verbose):
+    def __init__(self, host, port, blacklist, log_access, log_err, quiet, verbose):
 
         self.host = host
         self.port = port
         self.blacklist = blacklist
-        self.log_file = log
+        self.log_access_file = log_access
+        self.log_err_file = log_err
+        self.quiet = quiet
         self.verbose = verbose
+
+        self.logger = logging.getLogger(__name__)
+        self.logging_errors = None
+        self.logging_access = None
 
         self.total_connections = 0
         self.allowed_connections = 0
@@ -35,12 +52,25 @@ class ProxyServer:
         self.speed_out = 0
         self.last_time = None
 
+        self.active_connections = {}
+        self.connections_lock = asyncio.Lock()
+
         self.blocked = []
         self.tasks = []
         self.server = None
 
         self.setup_logging()
         self.load_blacklist()
+
+    def print(self, *args, **kwargs):
+        """
+        Print the given arguments if quiet mode is enabled.
+
+        Parameters:
+            **kwargs: Any arguments accepted by the built-in print() function.
+        """
+        if not self.quiet:
+            print(*args, **kwargs)
 
     def setup_logging(self):
         """
@@ -51,23 +81,47 @@ class ProxyServer:
         [%(asctime)s][%(levelname)s]: %(message)s and the date format is
         %Y-%m-%d %H:%M:%S.
         """
-        logging.basicConfig(
-            filename=self.log_file if self.log_file else None,
-            level=logging.ERROR,
-            encoding="utf-8",
-            format="[%(asctime)s][%(levelname)s]: %(message)s",
-            datefmt="%Y-%m-%d %H:%M:%S",
-        )
-        if not self.log_file:
-            logging.disable()
+
+        if self.log_err_file:
+            self.logging_errors = logging.FileHandler(self.log_err_file,
+                                                      encoding='utf-8')
+            self.logging_errors.setFormatter(
+                logging.Formatter(
+                    "[%(asctime)s][%(levelname)s]: %(message)s", "%Y-%m-%d %H:%M:%S"
+                )
+            )
+            self.logging_errors.setLevel(logging.ERROR)
+            self.logging_errors.addFilter(
+                lambda record: record.levelno == logging.ERROR
+            )
+        else:
+            self.logging_errors = logging.NullHandler()
+
+        if self.log_access_file:
+            self.logging_access = logging.FileHandler(
+                self.log_access_file, encoding='utf-8')
+
+            self.logging_access.setFormatter(logging.Formatter("%(message)s"))
+            self.logging_access.setLevel(logging.INFO)
+            self.logging_access.addFilter(
+                lambda record: record.levelno == logging.INFO)
+        else:
+            self.logging_access = logging.NullHandler()
+
+        self.logger.propagate = False
+        self.logger.handlers = []
+        self.logger.setLevel(logging.INFO)
+        self.logger.addHandler(self.logging_errors)
+        self.logger.addHandler(self.logging_access)
 
     def load_blacklist(self):
         """
         Load the blacklist from the specified file.
         """
         if not os.path.exists(self.blacklist):
-            print(f"\033[91m[Error]: File {self.blacklist} not found\033[0m")
-            logging.error("File %s not found", self.blacklist)
+            self.print(
+                f"\033[91m[Error]: File {self.blacklist} not found\033[0m")
+            self.logger.error("File %s not found", self.blacklist)
             sys.exit(1)
 
         with open(self.blacklist, "r", encoding="utf-8") as f:
@@ -83,7 +137,8 @@ class ProxyServer:
         method.
         """
         self.print_banner()
-        asyncio.create_task(self.display_stats())
+        if not self.quiet:
+            asyncio.create_task(self.display_stats())
         self.server = await asyncio.start_server(
             self.handle_connection, self.host, self.port
         )
@@ -93,7 +148,7 @@ class ProxyServer:
         """
         Print a banner with the NoDPI logo and information about the proxy.
         """
-        print(
+        self.print(
             '''
 \033[92m`7MN.   `7MF'          `7MM"""Yb.   `7MM"""Mq. `7MMF'
   MMN.    M              MM    `Yb.   MM   `MM.  MM
@@ -104,20 +159,26 @@ class ProxyServer:
 .JML.    YM   `Ybmd9'  .JMMmmmdP'   .JMML.     .JMML.\033[0m
         '''
         )
-        print(f"\033[92mVersion: {__version__}".center(50))
-        print("\033[97m"+"Enjoy watching! / Наслаждайтесь просмотром!".center(50))
-        print(f"Proxy is running on {self.host}:{self.port}".center(50))
-        print("\n")
-        print(
-            f"\033[92m[INFO]:\033[97m Proxy started at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-        print(
-            f"\033[92m[INFO]:\033[97m Blacklist contains {len(self.blocked)} domains")
-        print(
+        self.print(f"\033[92mVersion: {__version__}".center(50))
+        self.print(
+            "\033[97m" +
+            "Enjoy watching! / Наслаждайтесь просмотром!".center(50)
+        )
+        self.print(f"Proxy is running on {self.host}:{self.port}".center(50))
+        self.print("\n")
+        self.print(
+            f"\033[92m[INFO]:\033[97m Proxy started at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
+        )
+        self.print(
+            f"\033[92m[INFO]:\033[97m Blacklist contains {len(self.blocked)} domains"
+        )
+        self.print(
             "\033[92m[INFO]:\033[97m To stop the proxy, press Ctrl+C twice")
-        if self.log_file:
-            print(
+        if self.log_err_file:
+            self.print(
                 "\033[92m[INFO]:\033[97m Logging is in progress. You can see the list of errors in the file "
-                f"{self.log_file}")
+                f"{self.log_err_file}"
+            )
 
     async def display_stats(self):
         """
@@ -131,8 +192,9 @@ class ProxyServer:
                 time_diff = current_time - self.last_time
                 self.speed_in = (self.traffic_in -
                                  self.last_traffic_in) * 8 / time_diff
-                self.speed_out = (self.traffic_out -
-                                  self.last_traffic_out) * 8 / time_diff
+                self.speed_out = (
+                    (self.traffic_out - self.last_traffic_out) * 8 / time_diff
+                )
 
             self.last_traffic_in = self.traffic_in
             self.last_traffic_out = self.traffic_out
@@ -148,26 +210,26 @@ class ProxyServer:
                 f"\033[97mSpeed DL: \033[96m{self.format_speed(self.speed_in)}\033[0m | "
                 f"\033[97mSpeed UL: \033[96m{self.format_speed(self.speed_out)}\033[0m"
             )
-            print('\u001b[2K'+stats, end='\r', flush=True)
+            self.print("\u001b[2K" + stats, end="\r", flush=True)
 
     @staticmethod
     def format_size(size):
         """
         Convert a size in bytes to a human-readable string with appropriate units.
         """
-        units = ['B', 'KB', 'MB', 'GB']
+        units = ["B", "KB", "MB", "GB"]
         unit = 0
-        while size >= 1024 and unit < len(units)-1:
+        while size >= 1024 and unit < len(units) - 1:
             size /= 1024
             unit += 1
         return f"{size:.1f} {units[unit]}"
 
     @staticmethod
     def format_speed(speed_bps):
-        units = ['bps', 'Kbps', 'Mbps', 'Gbps']
+        units = ["bps", "Kbps", "Mbps", "Gbps"]
         unit = 0
         speed = speed_bps
-        while speed >= 1000 and unit < len(units)-1:
+        while speed >= 1000 and unit < len(units) - 1:
             speed /= 1000
             unit += 1
         return f"{speed:.1f} {units[unit]}"
@@ -182,55 +244,76 @@ class ProxyServer:
         server and starts piping data between the client and the target server.
         """
 
-        http_data = await reader.read(1500)
-        if not http_data:
-            writer.close()
-            return
-
         try:
-            headers = http_data.split(b"\r\n")[0].split(b" ")
-            conn_type = headers[0]
-            target = headers[1]
-            host, port = target.split(b":")
-        except Exception as e:
-            logging.error(e)
-            if self.verbose:
-                print(f"\033[93m[NON-CRITICAL]:\033[97m {e}\033[0m")
-            writer.close()
-            return
+            client_ip, client_port = writer.get_extra_info("peername")
+            http_data = await reader.read(1500)
+            if not http_data:
+                writer.close()
+                return
+            headers = http_data.split(b"\r\n")
+            first_line = headers[0].split(b" ")
+            method = first_line[0]
+            url = first_line[1]
 
-        if conn_type != b"CONNECT":
-            writer.close()
-            return
+            if method == b"CONNECT":
+                host_port = url.split(b":")
+                host = host_port[0]
+                port = int(host_port[1]) if len(host_port) > 1 else 443
+            else:
+                host_header = next(
+                    (h for h in headers if h.startswith(b"Host: ")), None
+                )
+                if not host_header:
+                    raise ValueError("Missing Host header")
 
-        self.total_connections += 1
-        writer.write(b"HTTP/1.1 200 OK\n\n")
-        await writer.drain()
+                host_port = host_header[6:].split(b":")
+                host = host_port[0]
+                port = int(host_port[1]) if len(host_port) > 1 else 80
 
-        try:
-            remote_reader, remote_writer = await asyncio.open_connection(
-                host.decode(), port.decode()
+            conn_key = (client_ip, client_port)
+            conn_info = ConnectionInfo(
+                client_ip, host.decode(), method.decode())
+
+            async with self.connections_lock:
+                self.active_connections[conn_key] = conn_info
+
+            if method == b"CONNECT":
+                writer.write(b"HTTP/1.1 200 Connection Established\r\n\r\n")
+                await writer.drain()
+
+                remote_reader, remote_writer = await asyncio.open_connection(
+                    host.decode(), port
+                )
+
+                await self.fragment_data(reader, remote_writer)
+            else:
+                remote_reader, remote_writer = await asyncio.open_connection(
+                    host.decode(), port
+                )
+                remote_writer.write(http_data)
+                await remote_writer.drain()
+
+                self.allowed_connections += 1
+
+            self.total_connections += 1
+
+            self.tasks.extend(
+                [
+                    asyncio.create_task(
+                        self.pipe(reader, remote_writer, "out", conn_key)
+                    ),
+                    asyncio.create_task(
+                        self.pipe(remote_reader, writer, "in", conn_key)
+                    ),
+                ]
             )
         except Exception as e:
-            logging.error(e)
+            self.logger.error(traceback.format_exc())
             if self.verbose:
-                print(f"\033[93m[NON-CRITICAL]:\033[97m {e}\033[0m")
+                self.print(f"\033[93m[NON-CRITICAL]:\033[97m {e}\033[0m")
             writer.close()
-            return
 
-        if port == b"443":
-            await self.fragment_data(reader, remote_writer)
-
-        self.tasks.extend(
-            [
-                asyncio.create_task(
-                    self.pipe(reader, remote_writer, 'out')),
-                asyncio.create_task(
-                    self.pipe(remote_reader, writer, 'in')),
-            ]
-        )
-
-    async def pipe(self, reader, writer, direction):
+    async def pipe(self, reader, writer, direction, conn_key):
         """
         Pipe data from a reader to a writer.
 
@@ -246,18 +329,30 @@ class ProxyServer:
         try:
             while not reader.at_eof() and not writer.is_closing():
                 data = await reader.read(1500)
-                if direction == 'out':
-                    self.traffic_out += len(data)
-                else:
-                    self.traffic_in += len(data)
+                async with self.connections_lock:
+                    conn_info = self.active_connections.get(conn_key)
+                    if conn_info:
+                        if direction == "out":
+                            self.traffic_out += len(data)
+                            conn_info.traffic_out += len(data)
+                        else:
+                            self.traffic_in += len(data)
+                            conn_info.traffic_in += len(data)
                 writer.write(data)
                 await writer.drain()
         except Exception as e:
-            logging.error(e)
+            self.logger.error(traceback.format_exc())
             if self.verbose:
-                print(f"\033[93m[NON-CRITICAL]:\033[97m {e}\033[0m")
+                self.print(f"\033[93m[NON-CRITICAL]:\033[97m {e}\033[0m")
         finally:
             writer.close()
+            async with self.connections_lock:
+                conn_info: ConnectionInfo = self.active_connections.pop(
+                    conn_key, None)
+                if conn_info:
+                    self.logger.info(
+                        f"{conn_info.start_time} {conn_info.src_ip} {conn_info.method} {conn_info.dst_domain}"
+                    )
 
     async def fragment_data(self, reader, writer):
         """
@@ -276,9 +371,9 @@ class ProxyServer:
             head = await reader.read(5)
             data = await reader.read(2048)
         except Exception as e:
-            logging.error(e)
+            self.logger.error(traceback.format_exc())
             if self.verbose:
-                print(f"\033[93m[NON-CRITICAL]:\033[97m {e}\033[0m")
+                self.print(f"\033[93m[NON-CRITICAL]:\033[97m {e}\033[0m")
             return
 
         if all(site not in data for site in self.blocked):
@@ -335,23 +430,44 @@ class ProxyApplication:
         parser.add_argument(
             "--blacklist", default="blacklist.txt", help="Path to blacklist file"
         )
-        parser.add_argument("--log", required=False,
-                            help="Path to log file")
-        parser.add_argument('-v', '--verbose', action='store_true',
-                            help='Show more info')
+        parser.add_argument(
+            "--log_access", required=False, help="Path to the access control log"
+        )
+        parser.add_argument(
+            "--log_error", required=False, help="Path to log file for errors"
+        )
+        parser.add_argument(
+            "-q", "--quiet", action="store_true", help="Remove UI output"
+        )
+        parser.add_argument(
+            "-v",
+            "--verbose",
+            action="store_true",
+            help="Show more info (only for devs)",
+        )
         return parser.parse_args()
 
     @classmethod
     async def run(cls):
+
+        logging.getLogger("asyncio").setLevel(logging.CRITICAL)
+
         args = cls.parse_args()
-        proxy = ProxyServer(args.host, args.port,
-                            args.blacklist, args.log, args.verbose)
+        proxy = ProxyServer(
+            args.host,
+            args.port,
+            args.blacklist,
+            args.log_access,
+            args.log_error,
+            args.quiet,
+            args.verbose,
+        )
 
         try:
             await proxy.run()
         except asyncio.CancelledError:
             await proxy.shutdown()
-            print("\n\n\033[92m[INFO]:\033[97m Shutting down proxy...")
+            proxy.print("\n\n\033[92m[INFO]:\033[97m Shutting down proxy...")
             try:
                 sys.exit(0)
             except asyncio.CancelledError:
