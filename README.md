@@ -75,8 +75,6 @@ Your use of this software constitutes your agreement to the terms of this discla
 4) In some browsers, you may need to disable kyber
 5) Enjoy!
 
-While the utility is running, you may see a `NON-CRITICAL ERROR`. As a rule, these errors are not fatal and there is nothing terrible about them. But if you are downloading a file or you need a 100% stable connection, you should disable this utility.
-
 Please report any problems and malfunctions to us on [the Issues page](https://github.com/GVCoder09/NoDPI/issues)
 
 <hr>
@@ -87,13 +85,11 @@ Please report any problems and malfunctions to us on [the Issues page](https://g
 4) В некоторых браузерах может потребоваться отключение kyber
 5) Наслаждайтесь!
 
-Во время работы утилиты могут возникать ошибки с пометкой `NON-CRITICAL ERROR`. Как правило, эти ошибки не фатальные и ничего страшного в них нет. Но если вы скачиваете файл или вам нужно 100% стабильное соединение, вам стоит отключить эту утилиту.
-
 О всех проблемах и неполадках, пожалуйста, сообщайте нам в [Issues](https://github.com/GVCoder09/NoDPI/issues)
 
 ## Supported arguments / Поддерживаемые аргументы командной строки
 ```
-usage: nodpi.exe [-h] [--host HOST] [--port PORT] [--blacklist BLACKLIST] [--log LOG] [-v]
+usage: nodpi.exe [-h] [--host HOST] [--port PORT] [--blacklist BLACKLIST] [--log_access LOG_ACCESS] [--log_error LOG_ERROR] [-q] [-v]
 
 options:
   -h, --help            show this help message and exit
@@ -101,8 +97,12 @@ options:
   --port PORT           Proxy port
   --blacklist BLACKLIST
                         Path to blacklist file
-  --log LOG             Path to log file
-  -v, --verbose         Show more info
+  --log_access LOG_ACCESS
+                        Path to the access control log
+  --log_error LOG_ERROR
+                        Path to log file for errors
+  -q, --quiet           Remove UI output
+  -v, --verbose         Show more info (only for devs)
 
 ```
 ## Run from source code / Запуск из исходного кода
@@ -114,7 +114,7 @@ options:
 4) In some browsers, you may need to disable kyber
 5) Enjoy!
 
-By default, all errors are saved to a file `errors.log`. You can change the path to the file via the parameter `--log`
+You can enable error or access logging using parameters `--log_error` and `--log_access`
 
 <hr>
 
@@ -125,22 +125,19 @@ By default, all errors are saved to a file `errors.log`. You can change the path
 4) В некоторых браузерах может потребоваться отключение kyber
 5) Наслаждайтесь!
 
-По умолчанию все ошибки сохраняются в файл `errors.log`. Вы можете изменить путь к файлу через параметр `--log`
+Вы можете включить логирование ошибок или доступа с помощью параметров `--log_error` и `--log_access`
 
 ## Known bugs / Известные проблемы
 
 - Doesn't work at all. Yes, that can happen :(
 - Doesn't bypass IP block
-- Only TCP
+- Only TCP and HTTPS (HTTP ignored)
 - Not working with sites with old TLS
-
-During operation, non-fatal errors may occur, about which the program notifies. As a rule, they do not affect the operation. All errors are saved in a file `errors.log` and you can report them to us.
 
 <hr>
 
 - Не работает вообще. Да, такое может быть :(
 - Не работает, если сайт заблокирован по IP
-- Только для TCP
+- Только для TCP and HTTPS (HTTP игнорируется)
 - Не работает для сайтов со старым TLS
 
-Во время работы могут возникать нефатальные ошибки, о чем программа уведомляет. Как правило, они не влияют на работу. Все ошибки сохраняются в файле `errors.log` и вы можете сообщать нам о них.
