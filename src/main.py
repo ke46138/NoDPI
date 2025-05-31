@@ -54,6 +54,7 @@ class ProxyServer:
 
         self.active_connections = {}
         self.connections_lock = asyncio.Lock()
+        self.tasks_lock = asyncio.Lock()
 
         self.blocked = []
         self.tasks = []
@@ -142,6 +143,7 @@ class ProxyServer:
         self.server = await asyncio.start_server(
             self.handle_connection, self.host, self.port
         )
+        asyncio.create_task(self.cleanup_tasks())
         await self.server.serve_forever()
 
     def print_banner(self):
@@ -233,6 +235,12 @@ class ProxyServer:
             speed /= 1000
             unit += 1
         return f"{speed:.1f} {units[unit]}"
+
+    async def cleanup_tasks(self):
+        while True:
+            await asyncio.sleep(60)
+            async with self.tasks_lock:
+                self.tasks = [t for t in self.tasks if not t.done()]
 
     async def handle_connection(self, reader, writer):
         """
