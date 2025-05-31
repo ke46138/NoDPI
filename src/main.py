@@ -10,10 +10,20 @@ from datetime import datetime
 import time
 import traceback
 
-__version__ = "1.7"
+import winreg
+import ctypes
+import ctypes.wintypes
+import win32api
+
+__version__ = "1.7.1"
 
 os.system("")
 
+CTRL_C_EVENT = 0
+CTRL_BREAK_EVENT = 1
+CTRL_CLOSE_EVENT = 2
+CTRL_LOGOFF_EVENT = 5
+CTRL_SHUTDOWN_EVENT = 6
 
 class ConnectionInfo:
     def __init__(self, src_ip, dst_domain, method):
@@ -72,6 +82,31 @@ class ProxyServer:
         """
         if not self.quiet:
             print(*args, **kwargs)
+
+    def set_proxy(self, enable: bool, proxy: str = "127.0.0.1:8881"):
+        INTERNET_SETTINGS = r"Software\Microsoft\Windows\CurrentVersion\Internet Settings"
+        key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, INTERNET_SETTINGS, 0, winreg.KEY_SET_VALUE)
+
+        winreg.SetValueEx(key, "ProxyEnable", 0, winreg.REG_DWORD, 1 if enable else 0)
+        if enable:
+            winreg.SetValueEx(key, "ProxyServer", 0, winreg.REG_SZ, proxy)
+        winreg.CloseKey(key)
+
+        INTERNET_OPTION_SETTINGS_CHANGED = 39
+        INTERNET_OPTION_REFRESH = 37
+
+        internet_set_option = ctypes.windll.Wininet.InternetSetOptionW
+
+        # Уведомить систему о том, что настройки были изменены
+        internet_set_option(0, INTERNET_OPTION_SETTINGS_CHANGED, 0, 0)
+        internet_set_option(0, INTERNET_OPTION_REFRESH, 0, 0)
+
+    def on_exit(self, dwCtrlType):
+        if dwCtrlType == CTRL_CLOSE_EVENT:
+            self.set_proxy(False)
+            self.shutdown()
+            return True
+        return False
 
     def setup_logging(self):
         """
@@ -161,21 +196,23 @@ class ProxyServer:
 .JML.    YM   `Ybmd9'  .JMMmmmdP'   .JMML.     .JMML.\033[0m
         '''
         )
-        self.print(f"\033[92mVersion: {__version__}".center(50))
+        self.print(f"\033[92mВерсия: {__version__}".center(50))
+
         self.print(
             "\033[97m" +
-            "Enjoy watching! / Наслаждайтесь просмотром!".center(50)
+            "Наслаждайтесь просмотром ютуба!".center(50)
         )
-        self.print(f"Proxy is running on {self.host}:{self.port}".center(50))
-        self.print("\n")
+
+        self.print(f"Прокси запущен на {self.host}:{self.port}".center(50))
+        self.print("")
         self.print(
-            f"\033[92m[INFO]:\033[97m Proxy started at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
-        )
-        self.print(
-            f"\033[92m[INFO]:\033[97m Blacklist contains {len(self.blocked)} domains"
+            f"\033[92m[INFO]:\033[97m Прокси запущен с {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
         )
         self.print(
-            "\033[92m[INFO]:\033[97m To stop the proxy, press Ctrl+C twice")
+            f"\033[92m[INFO]:\033[97m Blacklist содержит {len(self.blocked)} доменов"
+        )
+        self.print(
+            "\033[92m[INFO]:\033[97m Чтобы закрыть это нафиг, нажми Ctrl+C")
         if self.log_err_file:
             self.print(
                 "\033[92m[INFO]:\033[97m Logging is in progress. You can see the list of errors in the file "
@@ -471,16 +508,19 @@ class ProxyApplication:
             args.verbose,
         )
 
+        proxy.set_proxy(True, "127.0.0.1:8881")
+        win32api.SetConsoleCtrlHandler(proxy.on_exit, True)
+
         try:
             await proxy.run()
         except asyncio.CancelledError:
+            proxy.set_proxy(False)
             await proxy.shutdown()
             proxy.print("\n\n\033[92m[INFO]:\033[97m Shutting down proxy...")
             try:
                 sys.exit(0)
             except asyncio.CancelledError:
                 pass
-
 
 if __name__ == "__main__":
     try:
