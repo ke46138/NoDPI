@@ -127,6 +127,22 @@ You can enable error or access logging using parameters `--log_error` and `--log
 
 Вы можете включить логирование ошибок или доступа с помощью параметров `--log_error` и `--log_access`
 
+## Running in Docker / Запуск в Docker
+
+1. [Install Docker](https://docs.docker.com/).
+2. Clone the repository: `git clone https://github.com/GVCoder09/NoDPI`
+3. Navigate to the project directory and build the container: `cd NoDPI && docker build -t nodpi .`
+4. Run the container with the command: `docker run -d -p 127.0.0.1:8881:8881 -v /path/to/blacklists/:/blacklists:ro nodpi`, where `/path/to/blacklists/` is the path to the blacklist files.
+5. Enjoy!
+
+<hr>
+
+1) [Установите Docker](https://docs.docker.com/)
+2) Склонируйте репозиторий: `git clone https://github.com/GVCoder09/NoDPI`
+3) Перейдите в директорию проекта и соберите контейнер: `cd NoDPI && docker build -t nodpi .`
+4) Запустите контейнер с помощью команды: `docker run -d -p 127.0.0.1:8881:8881 -v /path/to/blacklists/:/blacklists:ro nodpi`, где `/path/to/blacklists/` путь к файлам с черными списками
+5) Наслаждайтесь!
+
 ## Known bugs / Известные проблемы
 
 - Doesn't work at all. Yes, that can happen :(
