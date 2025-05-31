@@ -8,9 +8,9 @@
 # NoDPI
 *Say NO to blocking!*
 
-[![Visitors](https://visitor-badge.laobi.icu/badge?page_id=GVCoder09.NoDPI)]()
+[![Visitors](https://visitor-badge.laobi.icu/badge?page_id=ke46138.NoDPI)]()
 
-This project is a fork of the repository https://github.com/theo0x0/nodpi and is developed independently. Do not confuse with https://github.com/raspabamos/nodpi !
+This project is a fork of the repository https://github.com/GVCoder09/nodpi and is developed independently. Do not confuse with https://github.com/raspabamos/nodpi !
 
 ## Description / Описание
 NoDPI is a utility for bypassing the DPI (Deep Packet Inspection) system, which allows blocking access to Internet resources. This utility allows you to bypass such blockings and freely use the Internet.
@@ -69,23 +69,24 @@ Your use of this software constitutes your agreement to the terms of this discla
 Использование данного программного обеспечения означает ваше согласие с условиями данного отказа от ответственности. Если вы не согласны с этими условиями, вы должны немедленно прекратить использование данного программного обеспечения.
 
 ## Quick start / Быстрый старт
-1) Download the latest version for your OS from [the Releases page](https://github.com/GVCoder09/NoDPI/releases) and unzip it
+1) Download the latest version for Windows (Linux not supported) from [the Releases page](https://github.com/ke46138/NoDPI/releases) and unzip it
 2) Go to the directory with the unzipped utility and run it with the command `nodpi.exe --blacklist blacklist.txt` in Windows or `./nodpi --blacklist ./blacklist.txt` in Linux. You can replace the file `blacklist.txt` with your own file. **If the blacklist file is not specified, the program will search for the file `blacklist.txt` in the current directory by default.**
-3) In the browser or system settings, set the proxy to 127.0.0.1:8881
 4) In some browsers, you may need to disable kyber
 5) Enjoy!
 
-Please report any problems and malfunctions to us on [the Issues page](https://github.com/GVCoder09/NoDPI/issues)
+Please report any problems and bugs to me on the [Issues page](https://github.com/ke46138/NoDPI/issues)
 
 <hr>
 
-1) [Скачайте](https://github.com/GVCoder09/NoDPI/releases) последнюю версию утилиты для вашей ОС и разархивруйте ее
+1) [Скачайте](https://github.com/GVCoder09/NoDPI/releases) последнюю версию утилиты для Windows (Linux пока не поддерживается) и разархивруйте ее
 2) Перейдите в каталог с распакованной утилитой и запустите ее командой `nodpi.exe --blacklist blacklist.txt` в Windows или `./nodpi --blacklist ./blacklist.txt` в Linux. Вы можете заменить файл `blacklist.txt` своим файлом. **Если файл черного списка не указан, то программа по умолчанию будет искать файл `blacklist.txt` в текущей директории.**
-3) В настройках браузера или системы настройте прокси на 127.0.0.1:8881
 4) В некоторых браузерах может потребоваться отключение kyber
 5) Наслаждайтесь!
 
-О всех проблемах и неполадках, пожалуйста, сообщайте нам в [Issues](https://github.com/GVCoder09/NoDPI/issues)
+О всех проблемах и неполадках, пожалуйста, сообщайте мне в [Issues](https://github.com/ke46138/NoDPI/issues)
+
+> [!WARNING]
+> Linux пока что не поддерживается/Linux is not supported yet 
 
 ## Supported arguments / Поддерживаемые аргументы командной строки
 ```
@@ -107,21 +108,21 @@ options:
 ```
 ## Run from source code / Запуск из исходного кода
 
-1) Make sure you have Python 3.8 or higher installed. No third-party libraries are required
-2) Clone the repository `git clone https://github.com/GVCoder09/NoDPI.git` or [download the archive](https://github.com/GVCoder09/NoDPI/archive/refs/heads/main.zip) with the source code and unzip it
-3) Go to the main directory and run the code with the command `python src/main.py --blacklist ./blacklist.txt`
-3) In the browser or system settings, set the proxy to 127.0.0.1:8881
-4) In some browsers, you may need to disable kyber
-5) Enjoy!
+1) Make sure you have Python 3.8 or higher installed.
+2) Clone the repository `git clone https://github.com/ke46138/NoDPI.git` or [download the archive](https://github.com/ke46138/NoDPI/archive/refs/heads/main.zip) with the source code and unzip it
+3) Install libraries: `pip install -r requirements`
+4) Go to the main directory and run the code with the command `python src/main.py --blacklist ./blacklist.txt`
+5) In some browsers, you may need to disable kyber
+6) Enjoy!
 
 You can enable error or access logging using parameters `--log_error` and `--log_access`
 
 <hr>
 
 1) Убедитесь что у вас установлен Python версии 3.8 и выше. Никакие сторонние библиотеки не требуются
-2) Клонируйте репозиторий `git clone https://github.com/GVCoder09/NoDPI.git` или [скачайте архив](https://github.com/GVCoder09/NoDPI/archive/refs/heads/main.zip) с исходным кодом и распакуйте его
+2) Клонируйте репозиторий `git clone https://github.com/ke46138/NoDPI.git` или [скачайте архив](https://github.com/ke46138/NoDPI/archive/refs/heads/main.zip) с исходным кодом и распакуйте его
+2) Установите библиотеки: `pip install -r requirements`
 3) Перейдите в основную директорию и запустите код командой `python src/main.py --blacklist ./blacklist.txt`
-3) В настройках браузера или системы настройте прокси на 127.0.0.1:8881
 4) В некоторых браузерах может потребоваться отключение kyber
 5) Наслаждайтесь!
 
