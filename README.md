@@ -78,7 +78,7 @@ Please report any problems and bugs to me on the [Issues page](https://github.co
 
 <hr>
 
-1) [Скачайте](https://github.com/GVCoder09/NoDPI/releases) последнюю версию утилиты для Windows (Linux пока не поддерживается) и разархивруйте ее
+1) [Скачайте](https://github.com/ke46138/NoDPI/releases) последнюю версию утилиты для Windows (Linux пока не поддерживается) и разархивруйте ее
 2) Перейдите в каталог с распакованной утилитой и запустите ее командой `nodpi.exe --blacklist blacklist.txt` в Windows или `./nodpi --blacklist ./blacklist.txt` в Linux. Вы можете заменить файл `blacklist.txt` своим файлом. **Если файл черного списка не указан, то программа по умолчанию будет искать файл `blacklist.txt` в текущей директории.**
 4) В некоторых браузерах может потребоваться отключение kyber
 5) Наслаждайтесь!
@@ -110,8 +110,8 @@ options:
 
 1) Make sure you have Python 3.8 or higher installed.
 2) Clone the repository `git clone https://github.com/ke46138/NoDPI.git` or [download the archive](https://github.com/ke46138/NoDPI/archive/refs/heads/main.zip) with the source code and unzip it
-3) Install libraries: `pip install -r requirements`
-4) Go to the main directory and run the code with the command `python src/main.py --blacklist ./blacklist.txt`
+3) Go to the main directory and install libraries: `pip install -r requirements.txt`
+4) Run the code with the command `python src/main.py --blacklist ./blacklist.txt`
 5) In some browsers, you may need to disable kyber
 6) Enjoy!
 
@@ -121,14 +121,17 @@ You can enable error or access logging using parameters `--log_error` and `--log
 
 1) Убедитесь что у вас установлен Python версии 3.8 и выше. Никакие сторонние библиотеки не требуются
 2) Клонируйте репозиторий `git clone https://github.com/ke46138/NoDPI.git` или [скачайте архив](https://github.com/ke46138/NoDPI/archive/refs/heads/main.zip) с исходным кодом и распакуйте его
-2) Установите библиотеки: `pip install -r requirements`
-3) Перейдите в основную директорию и запустите код командой `python src/main.py --blacklist ./blacklist.txt`
+2) Перейдите в основную директорию и установите библиотеки: `pip install -r requirements.txt`
+3) Запустите код командой `python src/main.py --blacklist ./blacklist.txt`
 4) В некоторых браузерах может потребоваться отключение kyber
 5) Наслаждайтесь!
 
 Вы можете включить логирование ошибок или доступа с помощью параметров `--log_error` и `--log_access`
 
 ## Running in Docker / Запуск в Docker
+
+> [!WARNING]
+> Docker пока что не поддерживается/Docker is not supported yet 
 
 1. [Install Docker](https://docs.docker.com/).
 2. Clone the repository: `git clone https://github.com/GVCoder09/NoDPI`
