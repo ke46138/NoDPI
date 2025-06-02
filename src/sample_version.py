@@ -86,8 +86,7 @@ async def fragment_data(local_reader, remote_writer):
     host_end_index = data.find(b"\x00")
     if host_end_index != -1:
         parts.append(
-            bytes.fromhex("1603")
-            + bytes([random.randint(0, 255)])
+            bytes.fromhex("160304")
             + int(host_end_index + 1).to_bytes(2, byteorder="big")
             + data[: host_end_index + 1]
         )
@@ -96,8 +95,7 @@ async def fragment_data(local_reader, remote_writer):
     while data:
         part_len = random.randint(1, len(data))
         parts.append(
-            bytes.fromhex("1603")
-            + bytes([random.randint(0, 255)])
+            bytes.fromhex("160304")
             + int(part_len).to_bytes(2, byteorder="big")
             + data[0:part_len]
         )
