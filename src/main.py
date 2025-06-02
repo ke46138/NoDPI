@@ -10,9 +10,12 @@ from datetime import datetime
 import time
 import traceback
 
-__version__ = "1.7"
+__version__ = "1.8"
 
 os.system("")
+
+if sys.platform == "win32":
+    import winreg
 
 
 class ConnectionInfo:
@@ -121,7 +124,7 @@ class ProxyServer:
         """
         if not os.path.exists(self.blacklist):
             self.print(
-                f"\033[91m[Error]: File {self.blacklist} not found\033[0m")
+                f"\033[91m[ERROR]: File {self.blacklist} not found\033[0m")
             self.logger.error("File %s not found", self.blacklist)
             sys.exit(1)
 
@@ -453,7 +456,61 @@ class ProxyApplication:
             action="store_true",
             help="Show more info (only for devs)",
         )
+
+        autostart_group = parser.add_mutually_exclusive_group()
+        autostart_group.add_argument(
+            "--install",
+            action="store_true",
+            help="Add proxy to Windows autostart (only for EXE)",
+        )
+        autostart_group.add_argument(
+            "--uninstall",
+            action="store_true",
+            help="Remove proxy from Windows autostart (only for EXE)",
+        )
+
         return parser.parse_args()
+
+    @staticmethod
+    def manage_autostart(action="install"):
+        """Manage proxy autostart on Windows"""
+
+        if sys.platform != "win32":
+            print(
+                "\033[91m[ERROR]:\033[97m Autostart only available on Windows")
+            return
+
+        app_name = "NoDPIProxy"
+        exe_path = sys.executable
+
+        try:
+            key = winreg.HKEY_CURRENT_USER  # pylint: disable=possibly-used-before-assignment
+            reg_path = r"Software\Microsoft\Windows\CurrentVersion\Run"
+
+            if action == "install":
+                with winreg.OpenKey(key, reg_path, 0, winreg.KEY_WRITE) as regkey:
+                    winreg.SetValueEx(
+                        regkey,
+                        app_name,
+                        0,
+                        winreg.REG_SZ,
+                        f'"{exe_path}" --blacklist "{os.path.dirname(exe_path)}/blacklist.txt"',
+                    )
+                print(
+                    f"\033[92m[INFO]:\033[97m Added to autostart: {exe_path}")
+
+            elif action == "uninstall":
+                try:
+                    with winreg.OpenKey(key, reg_path, 0, winreg.KEY_WRITE) as regkey:
+                        winreg.DeleteValue(regkey, app_name)
+                    print("\033[92m[INFO]:\033[97m Removed from autostart")
+                except FileNotFoundError:
+                    print("\033[91m[ERROR]: Not found in autostart\033[0m")
+
+        except PermissionError:
+            print("\033[91m[ERROR]: Access denied. Run as administrator\033[0m")
+        except Exception as e:
+            print(f"\033[91m[ERROR]: Autostart operation failed: {e}\033[0m")
 
     @classmethod
     async def run(cls):
@@ -461,6 +518,19 @@ class ProxyApplication:
         logging.getLogger("asyncio").setLevel(logging.CRITICAL)
 
         args = cls.parse_args()
+
+        if args.install or args.uninstall:
+            if getattr(sys, 'frozen', False):
+                if args.install:
+                    cls.manage_autostart("install")
+                elif args.uninstall:
+                    cls.manage_autostart("uninstall")
+                sys.exit(0)
+            else:
+                print(
+                    "\033[91m[ERROR]: Autostart works only in EXE version\033[0m")
+                sys.exit(1)
+
         proxy = ProxyServer(
             args.host,
             args.port,
