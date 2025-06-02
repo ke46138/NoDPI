@@ -30,13 +30,14 @@ class ConnectionInfo:
 
 class ProxyServer:
 
-    def __init__(self, host, port, blacklist, log_access, log_err, quiet, verbose):
+    def __init__(self, host, port, blacklist, log_access, log_err, no_blacklist, quiet, verbose):
 
         self.host = host
         self.port = port
         self.blacklist = blacklist
         self.log_access_file = log_access
         self.log_err_file = log_err
+        self.no_blacklist = no_blacklist
         self.quiet = quiet
         self.verbose = verbose
 
@@ -387,7 +388,7 @@ class ProxyServer:
                 self.print(f"\033[93m[NON-CRITICAL]:\033[97m {e}\033[0m")
             return
 
-        if all(site not in data for site in self.blocked):
+        if not self.no_blacklist and all(site not in data for site in self.blocked):
             self.allowed_connections += 1
             writer.write(head + data)
             await writer.drain()
@@ -446,6 +447,9 @@ class ProxyApplication:
         )
         parser.add_argument(
             "--log_error", required=False, help="Path to log file for errors"
+        )
+        parser.add_argument(
+            "--no_blacklist", action="store_true", help="Use fragmentation for all domains"
         )
         parser.add_argument(
             "-q", "--quiet", action="store_true", help="Remove UI output"
@@ -537,6 +541,7 @@ class ProxyApplication:
             args.blacklist,
             args.log_access,
             args.log_error,
+            args.no_blacklist,
             args.quiet,
             args.verbose,
         )
