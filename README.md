@@ -10,7 +10,7 @@
 
 [![Visitors](https://visitor-badge.laobi.icu/badge?page_id=ke46138.NoDPI)]()
 
-This project is a fork of the repository https://github.com/GVCoder09/nodpi and is developed independently. Do not confuse with https://github.com/raspabamos/nodpi !
+This project is a fork of the repository https://github.com/GVCoder09/nodpi and is developed independently. Do not confuse with https://github.com/raspabamos/nodpi!
 
 ## Description / Описание
 NoDPI is a utility for bypassing the DPI (Deep Packet Inspection) system, which allows blocking access to Internet resources. This utility allows you to bypass such blockings and freely use the Internet.
@@ -154,7 +154,7 @@ You can enable error or access logging using parameters `--log_error` and `--log
 > Docker пока что не поддерживается/Docker is not supported yet 
 
 1) [Install Docker](https://docs.docker.com/).
-2) Clone the repository: `git clone https://github.com/GVCoder09/NoDPI`
+2) Clone the repository: `git clone https://github.com/ke46138/NoDPI`
 3) Navigate to the project directory and build the container: `cd NoDPI && docker build -t nodpi .`
 4) Run the container with the command: `docker run -d -p 127.0.0.1:8881:8881 -v /path/to/blacklists/:/blacklists:ro nodpi`, where `/path/to/blacklists/` is the path to the blacklist files.
 5) Enjoy!
@@ -162,7 +162,7 @@ You can enable error or access logging using parameters `--log_error` and `--log
 <hr>
 
 1) [Установите Docker](https://docs.docker.com/)
-2) Склонируйте репозиторий: `git clone https://github.com/GVCoder09/NoDPI`
+2) Склонируйте репозиторий: `git clone https://github.com/ke46138/NoDPI`
 3) Перейдите в директорию проекта и соберите контейнер: `cd NoDPI && docker build -t nodpi .`
 4) Запустите контейнер с помощью команды: `docker run -d -p 127.0.0.1:8881:8881 -v /path/to/blacklists/:/blacklists:ro nodpi`, где `/path/to/blacklists/` путь к файлам с черными списками
 5) Наслаждайтесь!
@@ -178,6 +178,6 @@ You can enable error or access logging using parameters `--log_error` and `--log
 
 - Не работает вообще. Да, такое может быть :(
 - Не работает, если сайт заблокирован по IP
-- Только для TCP и HTTPS (HTTP игнорируется)
+- Только для TCP и HTTPS (HTTP игнорируется, UDP скорее всего не работает)
 - Не работает для сайтов со старым TLS
 
