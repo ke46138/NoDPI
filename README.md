@@ -88,9 +88,26 @@ Please report any problems and bugs to me on the [Issues page](https://github.co
 > [!WARNING]
 > Linux пока что не поддерживается/Linux is not supported yet 
 
+## Add to startup (only for Windows) / Добавление в автозагрузку (только для Windows)
+1) [Download](https://github.com/GVCoder09/NoDPI/releases) the latest version of the utility for Windows and unzip it
+2) Go to the directory with the unzipped utility. Move the `blacklist.txt` file to the same folder where the program itself is located.
+3) Run the command `nodpi.exe --install`. The program will be added to startup via the Windows registry (`HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Run`)
+4) Restart your computer
+5) Enjoy!
+
+<hr>
+
+1) [Скачайте](https://github.com/GVCoder09/NoDPI/releases) последнюю версию утилиты для Windows и разархивруйте ее
+2) Перейдите в каталог с распакованной утилитой. Переместите файл `blacklist.txt` в ту же папку, где находится сама программа
+3) Запустите команду `nodpi.exe --install`. Программа будет добавлена в автозагрузку через реестр Windows (`HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Run`)
+4) Перезагрузите компьютер
+5) Наслаждайтесь!
+
 ## Supported arguments / Поддерживаемые аргументы командной строки
 ```
-usage: nodpi.exe [-h] [--host HOST] [--port PORT] [--blacklist BLACKLIST] [--log_access LOG_ACCESS] [--log_error LOG_ERROR] [-q] [-v]
+usage: nodpi [-h] [--host HOST] [--port PORT] [--blacklist BLACKLIST] 
+             [--log_access LOG_ACCESS] [--log_error LOG_ERROR] [--no_blacklist] 
+             [-q] [-v] [--install | --uninstall]
 
 options:
   -h, --help            show this help message and exit
@@ -102,8 +119,11 @@ options:
                         Path to the access control log
   --log_error LOG_ERROR
                         Path to log file for errors
+  --no_blacklist        Use fragmentation for all domains
   -q, --quiet           Remove UI output
   -v, --verbose         Show more info (only for devs)
+  --install             Add proxy to Windows autostart (only for EXE)
+  --uninstall           Remove proxy from Windows autostart (only for EXE)
 
 ```
 ## Run from source code / Запуск из исходного кода
@@ -133,11 +153,11 @@ You can enable error or access logging using parameters `--log_error` and `--log
 > [!WARNING]
 > Docker пока что не поддерживается/Docker is not supported yet 
 
-1. [Install Docker](https://docs.docker.com/).
-2. Clone the repository: `git clone https://github.com/GVCoder09/NoDPI`
-3. Navigate to the project directory and build the container: `cd NoDPI && docker build -t nodpi .`
-4. Run the container with the command: `docker run -d -p 127.0.0.1:8881:8881 -v /path/to/blacklists/:/blacklists:ro nodpi`, where `/path/to/blacklists/` is the path to the blacklist files.
-5. Enjoy!
+1) [Install Docker](https://docs.docker.com/).
+2) Clone the repository: `git clone https://github.com/GVCoder09/NoDPI`
+3) Navigate to the project directory and build the container: `cd NoDPI && docker build -t nodpi .`
+4) Run the container with the command: `docker run -d -p 127.0.0.1:8881:8881 -v /path/to/blacklists/:/blacklists:ro nodpi`, where `/path/to/blacklists/` is the path to the blacklist files.
+5) Enjoy!
 
 <hr>
 
@@ -158,6 +178,6 @@ You can enable error or access logging using parameters `--log_error` and `--log
 
 - Не работает вообще. Да, такое может быть :(
 - Не работает, если сайт заблокирован по IP
-- Только для TCP and HTTPS (HTTP игнорируется)
+- Только для TCP и HTTPS (HTTP игнорируется)
 - Не работает для сайтов со старым TLS
 
