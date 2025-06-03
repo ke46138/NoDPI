@@ -213,7 +213,7 @@ class ProxyServer:
             f"\033[92m[INFO]:\033[97m Blacklist содержит {len(self.blocked)} доменов"
         )
         self.print(
-            "\033[92m[INFO]:\033[97m Чтобы закрыть это нафиг, нажми Ctrl+C")
+            "\033[92m[INFO]:\033[97m Чтобы закрыть это, нажми Ctrl+C")
         if self.log_err_file:
             self.print(
                 "\033[92m[INFO]:\033[97m Logging is in progress. You can see the list of errors in the file "
