@@ -104,8 +104,9 @@ Please report any problems and malfunctions to us on [the Issues page](https://g
 
 ## Supported arguments / Поддерживаемые аргументы командной строки
 ```
-usage: nodpi [-h] [--host HOST] [--port PORT] [--blacklist BLACKLIST] 
-             [--log_access LOG_ACCESS] [--log_error LOG_ERROR] [--no_blacklist] 
+usage: nodpi [-h] [--host HOST] [--port PORT] 
+             [--blacklist BLACKLIST | --no_blacklist] 
+             [--log_access LOG_ACCESS] [--log_error LOG_ERROR] 
              [-q] [-v] [--install | --uninstall]
 
 options:
@@ -114,11 +115,11 @@ options:
   --port PORT           Proxy port
   --blacklist BLACKLIST
                         Path to blacklist file
+  --no_blacklist        Use fragmentation for all domains
   --log_access LOG_ACCESS
                         Path to the access control log
   --log_error LOG_ERROR
                         Path to log file for errors
-  --no_blacklist        Use fragmentation for all domains
   -q, --quiet           Remove UI output
   -v, --verbose         Show more info (only for devs)
   --install             Add proxy to Windows autostart (only for EXE)
