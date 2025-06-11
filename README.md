@@ -178,3 +178,12 @@ You can enable error or access logging using parameters `--log_error` and `--log
 - Только для TCP и HTTPS (HTTP игнорируется)
 - Не работает для сайтов со старым TLS
 
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=GVCoder09/NoDPI&type=Date)](https://www.star-history.com/#GVCoder09/NoDPI&Date)
+
+## Thanks to the project participants / Благодарность участникам проекта
+
+[![Contributors](https://contrib.rocks/image?repo=GVCoder09/NoDPI)](https://github.com/GVCoder09/NoDPI/graphs/contributors)
+
+
