@@ -123,6 +123,8 @@ class ProxyServer:
         """
         Load the blacklist from the specified file.
         """
+        if self.no_blacklist:
+            return
         if not os.path.exists(self.blacklist):
             self.print(
                 f"\033[91m[ERROR]: File {self.blacklist} not found\033[0m")
@@ -175,9 +177,10 @@ class ProxyServer:
         self.print(
             f"\033[92m[INFO]:\033[97m Proxy started at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
         )
-        self.print(
-            f"\033[92m[INFO]:\033[97m Blacklist contains {len(self.blocked)} domains"
-        )
+        if not self.no_blacklist:
+            self.print(
+                f"\033[92m[INFO]:\033[97m Blacklist contains {len(self.blocked)} domains"
+            )
         self.print(
             "\033[92m[INFO]:\033[97m To stop the proxy, press Ctrl+C twice")
         if self.log_err_file:
@@ -439,17 +442,20 @@ class ProxyApplication:
         parser.add_argument("--host", default="127.0.0.1", help="Proxy host")
         parser.add_argument("--port", type=int,
                             default=8881, help="Proxy port")
-        parser.add_argument(
+
+        blacklist_group = parser.add_mutually_exclusive_group()
+        blacklist_group.add_argument(
             "--blacklist", default="blacklist.txt", help="Path to blacklist file"
         )
+        blacklist_group.add_argument(
+            "--no_blacklist", action="store_true", help="Use fragmentation for all domains"
+        )
+
         parser.add_argument(
             "--log_access", required=False, help="Path to the access control log"
         )
         parser.add_argument(
             "--log_error", required=False, help="Path to log file for errors"
-        )
-        parser.add_argument(
-            "--no_blacklist", action="store_true", help="Use fragmentation for all domains"
         )
         parser.add_argument(
             "-q", "--quiet", action="store_true", help="Remove UI output"
