@@ -328,9 +328,15 @@ class ProxyServer:
                 await writer.drain()
             except Exception:
                 pass
-            self.logger.error(traceback.format_exc())
+            try:
+                host_err = host
+            except Exception:
+                host_err = "Unknown"
+            self.logger.error(str(host_err.decode()) +
+                              ": " + traceback.format_exc())
             if self.verbose:
-                self.print(f"\033[93m[NON-CRITICAL]:\033[97m {e}\033[0m")
+                self.print(
+                    f"\033[93m[DEBUG]:\033[97m {host_err.decode()}: {e}\033[0m")
             writer.close()
 
     async def pipe(self, reader, writer, direction, conn_key):
@@ -361,9 +367,12 @@ class ProxyServer:
                 writer.write(data)
                 await writer.drain()
         except Exception as e:
-            self.logger.error(traceback.format_exc())
+            host_err = conn_info.dst_domain
+            self.logger.error(str(host_err.decode()) +
+                              ": " + traceback.format_exc())
             if self.verbose:
-                self.print(f"\033[93m[NON-CRITICAL]:\033[97m {e}\033[0m")
+                self.print(
+                    f"\033[93m[DEBUG]:\033[97m {host_err.decode()}: {e}\033[0m")
         finally:
             writer.close()
             async with self.connections_lock:
@@ -371,7 +380,8 @@ class ProxyServer:
                     conn_key, None)
                 if conn_info:
                     self.logger.info(
-                        f"{conn_info.start_time} {conn_info.src_ip} {conn_info.method} {conn_info.dst_domain}"
+                        "%s %s %s %s",
+                        conn_info.start_time, conn_info.src_ip, conn_info.method, conn_info.dst_domain
                     )
 
     async def fragment_data(self, reader, writer):
@@ -393,7 +403,7 @@ class ProxyServer:
         except Exception as e:
             self.logger.error(traceback.format_exc())
             if self.verbose:
-                self.print(f"\033[93m[NON-CRITICAL]:\033[97m {e}\033[0m")
+                self.print(f"\033[93m[DEBUG]:\033[97m {e}\033[0m")
             return
 
         if not self.no_blacklist and all(site not in data for site in self.blocked):
