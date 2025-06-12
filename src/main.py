@@ -323,6 +323,11 @@ class ProxyServer:
                 ]
             )
         except Exception as e:
+            try:
+                writer.write(b"HTTP/1.1 500 Internal Server Error\r\n\r\n")
+                await writer.drain()
+            except Exception:
+                pass
             self.logger.error(traceback.format_exc())
             if self.verbose:
                 self.print(f"\033[93m[NON-CRITICAL]:\033[97m {e}\033[0m")
