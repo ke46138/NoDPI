@@ -10,7 +10,7 @@ from datetime import datetime
 import time
 import traceback
 
-__version__ = "1.8"
+__version__ = "1.8.2"
 
 os.system("")
 
