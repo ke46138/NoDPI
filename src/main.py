@@ -15,7 +15,7 @@ import ctypes
 import ctypes.wintypes
 import win32api
 
-__version__ = "1.8"
+__version__ = "1.8.2"
 
 os.system("")
 
@@ -155,6 +155,8 @@ class ProxyServer:
         """
         Load the blacklist from the specified file.
         """
+        if self.no_blacklist:
+            return
         if not os.path.exists(self.blacklist):
             self.print(
                 f"\033[91m[ERROR]: File {self.blacklist} not found\033[0m")
@@ -209,9 +211,10 @@ class ProxyServer:
         self.print(
             f"\033[92m[INFO]:\033[97m Прокси запущен с {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
         )
-        self.print(
-            f"\033[92m[INFO]:\033[97m Blacklist содержит {len(self.blocked)} доменов"
-        )
+        if not self.no_blacklist:
+            self.print(
+                f"\033[92m[INFO]:\033[97m Blacklist содержит {len(self.blocked)} доменов"
+            )
         self.print(
             "\033[92m[INFO]:\033[97m Чтобы закрыть это, нажми Ctrl+C")
         if self.log_err_file:
@@ -354,9 +357,20 @@ class ProxyServer:
                 ]
             )
         except Exception as e:
-            self.logger.error(traceback.format_exc())
+            try:
+                writer.write(b"HTTP/1.1 500 Internal Server Error\r\n\r\n")
+                await writer.drain()
+            except Exception:
+                pass
+            try:
+                host_err = host
+            except Exception:
+                host_err = "Unknown"
+            self.logger.error(str(host_err.decode()) +
+                              ": " + traceback.format_exc())
             if self.verbose:
-                self.print(f"\033[93m[NON-CRITICAL]:\033[97m {e}\033[0m")
+                self.print(
+                    f"\033[93m[DEBUG]:\033[97m {host_err.decode()}: {e}\033[0m")
             writer.close()
 
     async def pipe(self, reader, writer, direction, conn_key):
@@ -387,9 +401,12 @@ class ProxyServer:
                 writer.write(data)
                 await writer.drain()
         except Exception as e:
-            self.logger.error(traceback.format_exc())
+            host_err = conn_info.dst_domain
+            self.logger.error(str(host_err.decode()) +
+                              ": " + traceback.format_exc())
             if self.verbose:
-                self.print(f"\033[93m[NON-CRITICAL]:\033[97m {e}\033[0m")
+                self.print(
+                    f"\033[93m[DEBUG]:\033[97m {host_err.decode()}: {e}\033[0m")
         finally:
             writer.close()
             async with self.connections_lock:
@@ -397,7 +414,8 @@ class ProxyServer:
                     conn_key, None)
                 if conn_info:
                     self.logger.info(
-                        f"{conn_info.start_time} {conn_info.src_ip} {conn_info.method} {conn_info.dst_domain}"
+                        "%s %s %s %s",
+                        conn_info.start_time, conn_info.src_ip, conn_info.method, conn_info.dst_domain
                     )
 
     async def fragment_data(self, reader, writer):
@@ -419,7 +437,7 @@ class ProxyServer:
         except Exception as e:
             self.logger.error(traceback.format_exc())
             if self.verbose:
-                self.print(f"\033[93m[NON-CRITICAL]:\033[97m {e}\033[0m")
+                self.print(f"\033[93m[DEBUG]:\033[97m {e}\033[0m")
             return
 
         if not self.no_blacklist and all(site not in data for site in self.blocked):
@@ -473,17 +491,20 @@ class ProxyApplication:
         parser.add_argument("--host", default="127.0.0.1", help="Proxy host")
         parser.add_argument("--port", type=int,
                             default=8881, help="Proxy port")
-        parser.add_argument(
+
+        blacklist_group = parser.add_mutually_exclusive_group()
+        blacklist_group.add_argument(
             "--blacklist", default="blacklist.txt", help="Path to blacklist file"
         )
+        blacklist_group.add_argument(
+            "--no_blacklist", action="store_true", help="Use fragmentation for all domains"
+        )
+
         parser.add_argument(
             "--log_access", required=False, help="Path to the access control log"
         )
         parser.add_argument(
             "--log_error", required=False, help="Path to log file for errors"
-        )
-        parser.add_argument(
-            "--no_blacklist", action="store_true", help="Use fragmentation for all domains"
         )
         parser.add_argument(
             "-q", "--quiet", action="store_true", help="Remove UI output"

@@ -105,8 +105,9 @@ Please report any problems and bugs to me on the [Issues page](https://github.co
 
 ## Supported arguments / Поддерживаемые аргументы командной строки
 ```
-usage: nodpi [-h] [--host HOST] [--port PORT] [--blacklist BLACKLIST] 
-             [--log_access LOG_ACCESS] [--log_error LOG_ERROR] [--no_blacklist] 
+usage: nodpi [-h] [--host HOST] [--port PORT] 
+             [--blacklist BLACKLIST | --no_blacklist] 
+             [--log_access LOG_ACCESS] [--log_error LOG_ERROR] 
              [-q] [-v] [--install | --uninstall]
 
 options:
@@ -115,11 +116,11 @@ options:
   --port PORT           Proxy port
   --blacklist BLACKLIST
                         Path to blacklist file
+  --no_blacklist        Use fragmentation for all domains
   --log_access LOG_ACCESS
                         Path to the access control log
   --log_error LOG_ERROR
                         Path to log file for errors
-  --no_blacklist        Use fragmentation for all domains
   -q, --quiet           Remove UI output
   -v, --verbose         Show more info (only for devs)
   --install             Add proxy to Windows autostart (only for EXE)
@@ -180,4 +181,13 @@ You can enable error or access logging using parameters `--log_error` and `--log
 - Не работает, если сайт заблокирован по IP
 - Только для TCP и HTTPS (HTTP игнорируется, UDP скорее всего не работает)
 - Не работает для сайтов со старым TLS
+
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=GVCoder09/NoDPI&type=Date)](https://www.star-history.com/#GVCoder09/NoDPI&Date)
+
+## Thanks to the project participants / Благодарность участникам проекта
+
+[![Contributors](https://contrib.rocks/image?repo=GVCoder09/NoDPI)](https://github.com/GVCoder09/NoDPI/graphs/contributors)
+
 
